@@ -1,0 +1,188 @@
+[
+  {
+    "name": "01-pal-desktop",
+    "path": "/#/pal",
+    "width": 1673,
+    "height": 947,
+    "wait": 10000
+  },
+  {
+    "name": "02-sola-desktop",
+    "path": "/#/sola",
+    "width": 1673,
+    "height": 947,
+    "wait": 10000
+  },
+  {
+    "name": "03-halo-desktop",
+    "path": "/#/halo",
+    "width": 1673,
+    "height": 947,
+    "wait": 13000
+  },
+  {
+    "name": "10-desktop-xl",
+    "path": "/#/pal",
+    "width": 2560,
+    "height": 1440,
+    "wait": 12000
+  },
+  {
+    "name": "11-laptop",
+    "path": "/#/pal",
+    "width": 1440,
+    "height": 900,
+    "wait": 10000
+  },
+  {
+    "name": "12-tablet",
+    "path": "/#/sola",
+    "width": 1024,
+    "height": 768,
+    "wait": 11000
+  },
+  {
+    "name": "13-tablet-portrait",
+    "path": "/#/sola",
+    "width": 834,
+    "height": 1112,
+    "wait": 11000
+  },
+  {
+    "name": "14-phone",
+    "path": "/#/pal",
+    "width": 390,
+    "height": 844,
+    "wait": 12000,
+    "mobile": true
+  },
+  {
+    "name": "15-phone-small",
+    "path": "/#/halo",
+    "width": 360,
+    "height": 740,
+    "wait": 14000,
+    "mobile": true
+  },
+  {
+    "name": "16-phone-landscape",
+    "path": "/#/pal",
+    "width": 844,
+    "height": 390,
+    "wait": 11000,
+    "mobile": true
+  },
+  {
+    "name": "17-small-landscape",
+    "path": "/#/pal",
+    "width": 900,
+    "height": 620,
+    "wait": 11000
+  },
+  {
+    "name": "20-menu",
+    "path": "/#/sola",
+    "width": 1440,
+    "height": 900,
+    "wait": 10000,
+    "actions": [
+      {
+        "click": ".menu-button"
+      },
+      {
+        "wait": 1600
+      }
+    ]
+  },
+  {
+    "name": "21-cinematic",
+    "path": "/#/sola",
+    "width": 1440,
+    "height": 900,
+    "wait": 10000,
+    "actions": [
+      {
+        "click": ".media__play"
+      },
+      {
+        "wait": 3200
+      }
+    ]
+  },
+  {
+    "name": "22-dragged",
+    "path": "/#/pal",
+    "width": 1440,
+    "height": 900,
+    "wait": 10000,
+    "actions": [
+      {
+        "drag": [
+          720,
+          480,
+          300,
+          -70
+        ]
+      },
+      {
+        "wait": 1800
+      }
+    ]
+  },
+  {
+    "name": "23-transition-mid",
+    "path": "/#/pal",
+    "width": 1440,
+    "height": 900,
+    "wait": 10000,
+    "actions": [
+      {
+        "click": ".indicators li:nth-child(3) .indicator"
+      },
+      {
+        "wait": 560
+      }
+    ]
+  },
+  {
+    "name": "24-rapid-clicks",
+    "path": "/#/pal",
+    "width": 1440,
+    "height": 900,
+    "wait": 10000,
+    "actions": [
+      {
+        "click": ".indicators li:nth-child(2) .indicator"
+      },
+      {
+        "click": ".indicators li:nth-child(3) .indicator"
+      },
+      {
+        "click": ".indicators li:nth-child(1) .indicator"
+      },
+      {
+        "click": ".indicators li:nth-child(3) .indicator"
+      },
+      {
+        "wait": 3600
+      }
+    ]
+  },
+  {
+    "name": "25-reduced-motion",
+    "path": "/#/pal",
+    "width": 1440,
+    "height": 900,
+    "wait": 11000,
+    "reducedMotion": true
+  },
+  {
+    "name": "26-loader",
+    "path": "/#/halo",
+    "width": 1440,
+    "height": 900,
+    "wait": 2600,
+    "until": "domcontentloaded",
+    "throttleKbps": 2200
+  }
+]

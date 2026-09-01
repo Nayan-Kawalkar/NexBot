@@ -1,0 +1,959 @@
+/* ===========================================================================
+   Phenomenon — projects
+   ---------------------------------------------------------------------------
+   Layer order matters more here than anywhere else:
+
+     0  atmosphere   the lit studio, painted in CSS
+     1  hero-type    the vehicle's name, oversized
+     2  stage-canvas transparent WebGL — the model occludes the word above,
+                     and its shadow falls across it
+     3  ui           everything else, floating, pointer-transparent by default
+
+   =========================================================================== */
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  background: var(--bg-deep);
+}
+
+body {
+  font-family: var(--font);
+  font-synthesis-weight: none;
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+a { color: inherit; text-decoration: none; }
+ul { list-style: none; margin: 0; padding: 0; }
+p, h1, h2, figure { margin: 0; }
+
+:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 5px;
+  border-radius: 1px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* --- shell ---------------------------------------------------------------- */
+
+.app {
+  position: fixed;
+  inset: 0;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.app.is-locked { cursor: progress; }
+
+/* --- atmosphere ----------------------------------------------------------- */
+
+/* Not a flat panel: a pool of light behind the hero, edges pulled down, and a
+   trace of grain so the wide dark gradients do not band on 8-bit displays. */
+.atmosphere {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(72% 56% at 50% 42%, rgba(133, 148, 163, 0.4), rgba(133, 148, 163, 0) 72%),
+    radial-gradient(130% 60% at 50% 112%, rgba(16, 20, 26, 0.42), rgba(16, 20, 26, 0) 62%),
+    linear-gradient(178deg, #3c454e 0%, #414a53 42%, #3a424b 74%, #313841 100%);
+}
+
+.atmosphere::before,
+.atmosphere::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.atmosphere::before {
+  background: radial-gradient(122% 96% at 50% 46%, rgba(0, 0, 0, 0) 46%, rgba(8, 11, 15, 0.3) 100%);
+}
+
+.atmosphere::after {
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* --- hero typography ------------------------------------------------------ */
+
+.hero-type {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-type);
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  user-select: none;
+  transition: opacity 0.6s var(--ease-out);
+}
+
+/* In the film view the composition steps back and leaves only the vehicle. */
+.app.is-cinematic .hero-type { opacity: 0.14; }
+
+.hero-type__word {
+  font-size: calc(var(--fs-hero-type) * var(--type-scale, 1));
+  font-weight: 700;
+  line-height: 0.78;
+  letter-spacing: -0.035em;
+  color: var(--type-bg);
+  /* Set low in the frame, the way the reference lands its baseline against the
+     wheels rather than centring the word on the composition. */
+  transform: translateY(var(--hero-type-baseline));
+  will-change: transform, opacity;
+}
+
+/* --- canvas --------------------------------------------------------------- */
+
+.stage-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-canvas);
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: grab;
+  /* Stops a rotate gesture from being stolen by the browser as a page scroll. */
+  touch-action: none;
+  outline-offset: -2px;
+}
+
+.stage-canvas.is-grabbing { cursor: grabbing; }
+
+/* --- ui shell ------------------------------------------------------------- */
+
+.ui {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-ui);
+  pointer-events: none;
+}
+
+/* On desktop the panels are placed against the composition, so the wrapper
+   simply gets out of the way. */
+.sheet { display: contents; }
+.stage-gap { display: none; }
+
+.ui a,
+.ui button { pointer-events: auto; }
+
+/* --- header --------------------------------------------------------------- */
+
+.header {
+  position: absolute;
+  top: var(--page-top);
+  left: var(--page-x);
+  right: var(--page-x);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42em;
+  font-size: var(--fs-brand);
+  font-weight: 700;
+  letter-spacing: -0.017em;
+  line-height: 1;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+
+.header__brand:hover { opacity: 0.72; }
+.header__brand-mark { width: 0.76em; height: 0.76em; }
+.header__brand-name { display: block; }
+
+/* Placed by ratio rather than by flex distribution — in the reference these
+   two sit at 31% and 78% of the frame, not at thirds. */
+.header__section {
+  position: absolute;
+  left: 29.8%;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.85em;
+  font-size: var(--fs-nav);
+  font-weight: 500;
+  color: var(--text);
+}
+
+.header__section-icon {
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow:
+    0 5px 0 currentColor,
+    5px 0 0 currentColor,
+    5px 5px 0 currentColor;
+  transform: translateX(-1px);
+}
+
+/* --- project counter ------------------------------------------------------ */
+
+.counter {
+  position: absolute;
+  left: 78%;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.85em;
+  font-size: var(--fs-counter);
+  line-height: 1;
+}
+
+.counter__mask {
+  display: inline-block;
+  overflow: hidden;
+  line-height: 1.1;
+}
+
+.counter__current {
+  display: inline-block;
+  font-weight: 700;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.counter__rule {
+  width: clamp(30px, 3.3vw, 56px);
+  height: 1px;
+  background: var(--line-soft);
+}
+
+.counter__total {
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.5);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- menu button ---------------------------------------------------------- */
+
+.menu-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 30px;
+  height: 22px;
+}
+
+.menu-button__lines {
+  position: relative;
+  display: block;
+  width: 30px;
+  height: 12px;
+}
+
+.menu-button__lines i {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 1.6px;
+  background: var(--text);
+  border-radius: 2px;
+  transition: transform 0.42s var(--ease-out), opacity 0.24s linear, width 0.42s var(--ease-out);
+}
+
+.menu-button__lines i:nth-child(1) { top: 0; }
+.menu-button__lines i:nth-child(2) { top: 5.2px; }
+.menu-button__lines i:nth-child(3) { top: 10.4px; }
+
+.menu-button:hover .menu-button__lines i:nth-child(2) { width: 68%; }
+
+.menu-button.is-open .menu-button__lines i:nth-child(1) { transform: translateY(5.2px) rotate(45deg); }
+.menu-button.is-open .menu-button__lines i:nth-child(2) { opacity: 0; }
+.menu-button.is-open .menu-button__lines i:nth-child(3) { transform: translateY(-5.2px) rotate(-45deg); }
+
+/* --- left rail ------------------------------------------------------------ */
+
+.rail {
+  position: absolute;
+  left: var(--page-x);
+  top: 0;
+  bottom: 0;
+  width: var(--rail-w);
+}
+
+.year {
+  position: absolute;
+  top: var(--anchor-meta);
+  left: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.85em;
+  font-size: var(--fs-meta);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.year__label { color: var(--text-muted); font-weight: 400; }
+.year__rule { width: clamp(28px, 2.9vw, 48px); height: 1px; background: var(--line-soft); }
+.year__value { font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+
+.statement {
+  position: absolute;
+  top: var(--anchor-statement);
+  left: 0;
+  width: 100%;
+  font-size: var(--fs-statement);
+  line-height: var(--lh-statement);
+  font-weight: 400;
+  color: var(--text);
+}
+
+.statement__rule {
+  display: inline-block;
+  width: clamp(56px, 8.6vw, 158px);
+  height: 1px;
+  margin-left: 0.7em;
+  vertical-align: middle;
+  background: var(--line-soft);
+}
+
+/* --- media preview -------------------------------------------------------- */
+
+.media {
+  position: absolute;
+  top: var(--anchor-media);
+  left: 0;
+  width: 100%;
+}
+
+.media__frame {
+  position: relative;
+  aspect-ratio: 29 / 18;
+  overflow: hidden;
+  border-radius: 3px;
+  background:
+    radial-gradient(72% 70% at 50% 42%, rgba(86, 97, 108, 0.55), rgba(86, 97, 108, 0) 72%),
+    linear-gradient(168deg, #2f363d 0%, #262c33 55%, #1d2228 100%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.media__image {
+  position: absolute;
+  inset: 3% 5% 3%;
+  width: 90%;
+  height: 94%;
+  object-fit: contain;
+  /* Sits high in the frame so the play control overlaps the sweep, not the
+     vehicle — the same relationship the reference card has. */
+  object-position: center 36%;
+  transition: transform 0.7s var(--ease-out);
+}
+
+.media:hover .media__image { transform: scale(1.035); }
+
+/* Overlapping the lower edge, exactly as the reference sets it. */
+.media__play {
+  position: absolute;
+  left: 49.6%;
+  top: 87%;
+  width: 33%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.13);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(7px) saturate(120%);
+  -webkit-backdrop-filter: blur(7px) saturate(120%);
+  color: var(--accent);
+  transition:
+    transform 0.44s var(--ease-out),
+    background-color 0.44s var(--ease-out),
+    box-shadow 0.44s var(--ease-out);
+}
+
+.media__play svg { width: 34%; height: 34%; transform: translateX(6%); transition: transform 0.44s var(--ease-out); }
+
+.media__play:hover {
+  transform: translate(-50%, -50%) scale(1.08);
+  background: rgba(255, 255, 255, 0.19);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.media__play:hover svg { transform: translateX(11%); }
+.media__play:active { transform: translate(-50%, -50%) scale(1.02); }
+.media__play:disabled { opacity: 0.45; cursor: default; }
+
+/* --- right column --------------------------------------------------------- */
+
+.indicators {
+  position: absolute;
+  top: var(--anchor-meta);
+  right: var(--page-x);
+  width: var(--info-w);
+}
+
+.indicators__list {
+  display: flex;
+  align-items: center;
+  /* Centres sit ~34px apart in the reference. */
+  gap: clamp(12px, 1.3vw, 21px);
+  margin-left: -2px;
+}
+
+.indicator {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+}
+
+.indicator__dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.52);
+  transition: transform 0.4s var(--ease-out), background-color 0.4s var(--ease-out);
+}
+
+.indicator__ring {
+  position: absolute;
+  inset: 1px;
+  border-radius: 50%;
+  border: 1px solid var(--accent);
+  opacity: 0;
+  transform: scale(0.55);
+  transition: opacity 0.5s var(--ease-out), transform 0.5s var(--ease-out);
+}
+
+.indicator:hover .indicator__dot { transform: scale(1.35); background: rgba(255, 255, 255, 0.85); }
+
+.indicator.is-active .indicator__ring {
+  opacity: 1;
+  transform: scale(1);
+  box-shadow: 0 0 14px 1px var(--accent-soft);
+}
+
+.indicator.is-active .indicator__dot {
+  background: var(--accent);
+  transform: scale(1.28);
+}
+
+.indicator.is-pending .indicator__dot {
+  background: rgba(255, 255, 255, 0.26);
+  animation: indicator-pending 1.6s var(--ease-in-out) infinite;
+}
+
+@keyframes indicator-pending {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+.column {
+  position: absolute;
+  right: var(--page-x);
+  top: 0;
+  bottom: 0;
+  width: var(--info-w);
+}
+
+.info {
+  position: absolute;
+  top: var(--anchor-statement);
+  right: 0;
+  width: 100%;
+}
+
+.info__title {
+  font-size: var(--fs-title);
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: 0.004em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+.info__body {
+  margin-top: 1.55em;
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.88);
+  text-wrap: pretty;
+}
+
+.info__body--secondary { color: var(--text-dim); }
+
+/* --- footer --------------------------------------------------------------- */
+
+.footer {
+  position: absolute;
+  left: var(--page-x);
+  right: var(--page-x);
+  bottom: var(--page-bottom);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.scroll-cue {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 9px;
+  align-items: flex-start;
+}
+
+.scroll-cue__label {
+  font-size: var(--fs-utility);
+  font-weight: 700;
+  letter-spacing: 0.005em;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+
+.scroll-cue__rule {
+  width: 44px;
+  height: 1px;
+  background: var(--text);
+  transform-origin: left center;
+  animation: scroll-rule 3.4s var(--ease-in-out) infinite;
+}
+
+@keyframes scroll-rule {
+  0%, 100% { transform: scaleX(1); opacity: 0.85; }
+  45% { transform: scaleX(0.36); opacity: 0.5; }
+}
+
+.scroll-cue:hover .scroll-cue__label { opacity: 0.7; }
+.scroll-cue:disabled { cursor: default; opacity: 0.5; }
+
+.social {
+  display: flex;
+  align-items: center;
+  font-size: var(--fs-utility);
+  font-weight: 500;
+}
+
+.social li { display: inline-flex; align-items: center; }
+
+.social__sep {
+  width: 3px;
+  height: 3px;
+  margin: 0 clamp(9px, 0.95vw, 16px);
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.social__link {
+  display: inline-block;
+  transition: transform var(--dur-fast) var(--ease-out), opacity var(--dur-fast) var(--ease-out);
+}
+
+.social__link:hover { transform: translateY(-2px); opacity: 0.72; }
+
+/* --- menu overlay --------------------------------------------------------- */
+
+.menu {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  clip-path: inset(0% 0% 100% 0%);
+  background:
+    radial-gradient(78% 60% at 22% 34%, rgba(126, 141, 156, 0.24), rgba(126, 141, 156, 0) 68%),
+    linear-gradient(178deg, #363f47 0%, #2e353d 62%, #262c33 100%);
+  pointer-events: none;
+}
+
+.menu.is-open { pointer-events: auto; }
+
+/* The header rides above the overlay: the same button that opened the menu
+   becomes the one that closes it, which is the whole point of the mark. */
+.app.is-menu-open .ui { z-index: calc(var(--z-overlay) + 1); }
+
+/* Opacity is GSAP's to animate; the stylesheet only takes the pointers away. */
+.app.is-menu-open .indicators,
+.app.is-menu-open .rail,
+.app.is-menu-open .column,
+.app.is-menu-open .footer {
+  pointer-events: none;
+}
+
+.menu__inner {
+  position: absolute;
+  inset: 0;
+  padding: calc(var(--page-top) + 8vh) var(--page-x) var(--page-bottom);
+  display: grid;
+  grid-template-columns: 1fr minmax(220px, 26%);
+  grid-template-rows: 1fr auto;
+  gap: 6vh 6vw;
+  /* Both columns hang from the same baseline, the way the composition on the
+     main screen hangs its rails off shared anchors. */
+  align-items: end;
+}
+
+.menu__nav { grid-column: 1; grid-row: 1; align-self: end; }
+.menu__nav ul { display: grid; gap: 0.1em; }
+.menu__item-mask { display: block; overflow: hidden; padding-bottom: 0.06em; }
+
+.menu__item {
+  display: flex;
+  align-items: baseline;
+  gap: 0.34em;
+  font-size: clamp(38px, 6.4vw, 108px);
+  font-weight: 700;
+  line-height: 1.06;
+  letter-spacing: -0.028em;
+  text-align: left;
+  transition: color 0.4s var(--ease-out), transform 0.5s var(--ease-out);
+}
+
+.menu__item-index {
+  font-size: 0.19em;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+  transition: color 0.4s var(--ease-out);
+}
+
+.menu__item:hover { color: var(--accent); transform: translateX(0.035em); }
+.menu__item:hover .menu__item-index { color: var(--accent); }
+.menu__item.is-active { color: var(--accent); }
+.menu__item.is-active .menu__item-index { color: var(--accent); }
+
+.menu__label {
+  font-size: var(--fs-nav);
+  color: var(--text-dim);
+  margin-bottom: 2.2em;
+}
+
+.menu__aside {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: end;
+  display: grid;
+  gap: 2.6em;
+}
+
+.menu__facts { margin: 0; display: grid; gap: 1.15em; }
+
+.menu__fact {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.1em 1em;
+  padding-bottom: 1.15em;
+  border-bottom: 1px solid var(--line-faint);
+  font-size: var(--fs-utility);
+}
+
+.menu__fact dt {
+  grid-column: 1;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.menu__fact dd {
+  grid-column: 1;
+  margin: 0;
+  color: var(--text-dim);
+}
+
+.menu__fact dd.menu__fact-year {
+  grid-column: 2;
+  grid-row: 1;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.menu__contact {
+  font-size: var(--fs-statement);
+  font-weight: 500;
+  color: var(--text);
+  border-bottom: 1px solid var(--line-soft);
+  padding-bottom: 0.35em;
+  justify-self: start;
+  transition: color 0.35s var(--ease-out), border-color 0.35s var(--ease-out);
+}
+
+.menu__contact:hover { color: var(--accent); border-color: var(--accent); }
+
+.menu__sign {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  margin-top: 2vh;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8em;
+  font-size: var(--fs-utility);
+  color: var(--text-dim);
+}
+
+.menu__sign-mark { width: 1.05em; height: 1.05em; color: var(--accent); }
+
+/* --- cinematic ------------------------------------------------------------ */
+
+.cinematic {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.cinematic.is-open { pointer-events: none; }
+.cinematic.is-open .cinematic__close { pointer-events: auto; }
+
+.cinematic__bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 11vh;
+  background: #14181d;
+}
+
+.cinematic__bar--top { top: 0; transform-origin: top center; }
+.cinematic__bar--bottom { bottom: 0; transform-origin: bottom center; }
+
+.cinematic__caption {
+  position: absolute;
+  left: var(--page-x);
+  bottom: calc(11vh + var(--page-bottom));
+  display: flex;
+  align-items: baseline;
+  gap: 1em;
+  font-size: var(--fs-utility);
+}
+
+.cinematic__index { color: var(--accent); font-variant-numeric: tabular-nums; }
+.cinematic__name { font-size: var(--fs-title); font-weight: 700; }
+.cinematic__year { color: var(--text-dim); font-variant-numeric: tabular-nums; }
+
+.cinematic__close {
+  position: absolute;
+  right: var(--page-x);
+  bottom: calc(11vh + var(--page-bottom));
+  font-size: var(--fs-utility);
+  font-weight: 500;
+  padding: 0.6em 0;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.cinematic__close:hover { color: var(--accent); }
+
+/* --- loader --------------------------------------------------------------- */
+
+.loader {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-loader);
+  display: grid;
+  place-items: center;
+  background: linear-gradient(178deg, #3c454e 0%, #38414a 62%, #313841 100%);
+  transition: opacity 0.9s var(--ease-out), visibility 0s linear 0.9s;
+}
+
+.loader.is-done { opacity: 0; visibility: hidden; }
+
+.loader__inner {
+  display: grid;
+  justify-items: center;
+  gap: 1.4em;
+  font-size: var(--fs-brand);
+}
+
+.loader__mark { width: 1.1em; height: 1.1em; }
+
+.loader__word {
+  font-size: 1em;
+  font-weight: 700;
+  letter-spacing: -0.017em;
+}
+
+.loader__track {
+  width: clamp(120px, 13vw, 190px);
+  height: 1px;
+  background: rgba(255, 255, 255, 0.16);
+  overflow: hidden;
+}
+
+.loader__bar {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--accent);
+  transform-origin: left center;
+  transform: scaleX(0);
+  transition: transform 0.5s var(--ease-out);
+}
+
+/* ===========================================================================
+   Responsive
+   ---------------------------------------------------------------------------
+   Not a shrunk desktop. Below 900px the composition re-forms: the vehicle keeps
+   the upper half of the frame (the camera lifts it there rather than the model
+   getting smaller), and the copy stacks into a sheet underneath it.
+   =========================================================================== */
+
+@media (max-width: 1180px) {
+  .header__section { display: none; }
+  .counter { left: auto; right: 54px; }
+}
+
+@media (max-width: 900px) and (max-aspect-ratio: 13/10) {
+  .ui {
+    display: flex;
+    flex-direction: column;
+    padding: var(--page-top) var(--page-x) var(--page-bottom);
+    gap: 12px;
+  }
+
+  /* Everything that was placed against the desktop composition returns to flow
+     and is re-ordered into the portrait reading sequence. */
+  .header,
+  .indicators,
+  .counter,
+  .rail,
+  .column,
+  .footer,
+  .year,
+  .statement,
+  .media,
+  .info {
+    position: static;
+    inset: auto;
+    width: auto;
+  }
+
+  .header { order: 0; gap: 16px; }
+  .counter { gap: 0.7em; }
+  .counter__rule { width: 26px; }
+
+  .indicators { order: 1; }
+  .indicators__list { gap: 12px; }
+  .indicator { width: 22px; height: 22px; }
+  .indicator__ring { inset: 0; }
+
+  /* The hero word belongs to the vehicle, so it moves up with it instead of
+     sitting behind the copy where it would only fight for attention. */
+  .hero-type { bottom: 46%; }
+
+  /* Reserved for the vehicle; the camera lifts the model into this band. */
+  .stage-gap { display: block; order: 2; flex: 1 1 auto; min-height: 26vh; }
+
+  .sheet {
+    order: 3;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    max-height: 42vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    pointer-events: auto;
+    padding: 18px 0 2px;
+    /* Its own ground, so copy is never read off the bodywork. Not a glass
+       panel — just the studio, brought forward. */
+    background: linear-gradient(
+      180deg,
+      rgba(48, 55, 63, 0) 0%,
+      rgba(46, 53, 61, 0.86) 9%,
+      rgba(44, 51, 58, 0.95) 22%,
+      rgba(44, 51, 58, 0.97) 100%
+    );
+    box-shadow: 0 -30px 40px 20px rgba(44, 51, 58, 0.42);
+  }
+
+  .column { order: 0; }
+  .rail { order: 1; display: grid; grid-template-columns: 1fr auto; gap: 14px 18px; align-items: start; }
+
+  .year { grid-column: 1; grid-row: 1; }
+  .statement { grid-column: 1; grid-row: 2; align-self: start; }
+  .media { grid-column: 2; grid-row: 1 / span 2; width: clamp(112px, 30vw, 172px); }
+
+  .footer {
+    order: 4;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 12px;
+  }
+
+  .info__body { margin-top: 1em; }
+  .info__body--secondary { display: none; }
+  .statement__rule { display: none; }
+  .scroll-cue { gap: 7px; }
+  .scroll-cue__rule { width: 34px; }
+  .media__play { width: 40%; }
+  .menu__inner {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    align-content: center;
+    align-items: start;
+    gap: 4vh 0;
+    padding-top: calc(var(--page-top) + 4vh);
+  }
+  .menu__nav { grid-column: 1; grid-row: 1; align-self: start; }
+  .menu__aside { grid-column: 1; grid-row: 2; align-self: start; gap: 1.8em; }
+  .menu__facts { display: none; }
+  .menu__sign { grid-row: 3; }
+  .menu__label { margin-bottom: 1.4em; }
+}
+
+@media (max-width: 560px) and (max-aspect-ratio: 13/10) {
+  .sheet { max-height: 46vh; }
+  .rail { grid-template-columns: 1fr auto; }
+  .media { width: clamp(104px, 32vw, 150px); }
+  .header__brand-mark { width: 0.7em; height: 0.7em; }
+}
+
+/* Short landscape phones: the side composition still holds, but there is no
+   height for the film card, and the description has to be cut rather than
+   allowed to run under the footer. */
+@media (orientation: landscape) and (max-height: 480px) {
+  .media { display: none; }
+  .header__section { display: none; }
+  .info__body {
+    margin-top: 0.85em;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  /* Scoped so it outranks the rule above, which shares its specificity. */
+  .info .info__body--secondary { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  .scroll-cue__rule { animation: none; }
+  .indicator.is-pending .indicator__dot { animation: none; }
+}
