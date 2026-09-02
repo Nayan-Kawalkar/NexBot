@@ -13,7 +13,7 @@ import { VEHICLE_LAYER } from './ContactShadow.js';
 /**
  * Loads, normalises, caches and stages the vehicles.
  *
- * The three GLBs were authored independently, so nothing about them can be
+ * The GLBs were authored independently, so nothing about them can be
  * assumed to agree: different heights, different footprints, different facing.
  * Every model therefore goes through the same measured pipeline — measure,
  * scale to a shared presentation size, re-centre onto its own footprint, drop
@@ -69,18 +69,19 @@ export default class VehicleManager {
   /**
    * Conditions the authored materials for this studio without rewriting them.
    *
-   * Two problems to solve, both inherited from how these assets were generated
-   * rather than from any design intent:
+   * Two faults a generated asset can arrive with, neither of them design
+   * intent:
    *
-   *  - the scooters arrive with a flat metal 0 / roughness 0.5 default and a
-   *    single baked base colour, so their light strips have no emissive channel
-   *    at all even though the bake clearly draws them;
-   *  - the car's roughness map bottoms out near zero, which turns large panels
-   *    into mirrors and makes every wobble in the generated mesh read as creased
-   *    foil — the studio render it came from shows a calm semi-gloss body.
+   *  - a flat metal 0 / roughness 0.5 default over a single baked base colour,
+   *    which leaves light strips with no emissive channel at all even though
+   *    the bake clearly draws them;
+   *  - a roughness map that bottoms out near zero, which turns large panels
+   *    into mirrors and makes every wobble in the mesh read as creased foil.
    *
    * Both are corrected with a small shader patch rather than by replacing the
-   * materials, so everything the asset actually authored survives.
+   * materials, so everything the asset actually authored survives. Which
+   * corrections a model gets is `MATERIAL_CONFIG`'s call, and it is empty
+   * until a model is measured to need one.
    */
   #conditionMaterials(entry, config) {
     const { emissive, roughnessFloor } = config;
@@ -316,36 +317,10 @@ export default class VehicleManager {
 /**
  * Per-model material conditioning.
  *
- * `halo` ships real roughness/metalness and normal maps, so it is left alone
- * beyond an environment weighting. The two scooters carry only a baked albedo
- * and need the emissive lift to get their light strips back.
+ * Empty by design: every current model ships its own maps, so nothing here
+ * needs overriding. The earlier entries were measured against the assets these
+ * replaced — a threshold tuned to a baked light strip lifts a white panel into
+ * emission on these — so they were removed rather than carried over. Add an
+ * entry only once a specific model is measured to need one.
  */
-const MATERIAL_CONFIG = {
-  // Thresholds are set against `diffuseColor`, which is the sampled albedo
-  // already multiplied by the exporter's 0.8 base-colour factor. Measured off
-  // the atlases: the light strips are the top ~1% of texels, at ~0.62 and up.
-  pal: {
-    envMapIntensity: 0.92,
-    roughness: 0.58,
-    metalness: 0.06,
-    emissive: { threshold: 0.6, softness: 0.14, strength: 2.4 },
-  },
-  sola: {
-    envMapIntensity: 0.95,
-    roughness: 0.56,
-    metalness: 0.06,
-    emissive: { threshold: 0.6, softness: 0.14, strength: 2.4 },
-  },
-  halo: {
-    envMapIntensity: 1.05,
-    // Its roughness map dips to ~0.004 in places, which turns large panels into
-    // mirrors and makes the generator's baked-in creasing read as crumpled
-    // foil. A high floor is what settles the bodywork down.
-    roughnessFloor: 0.5,
-    // Deliberately far tighter than the scooters'. This bake has specular
-    // highlights painted into the albedo at ~0.9-0.97, and a looser threshold
-    // lifts those streaks into emission — which lights up the exact artefact we
-    // are trying to play down. Only the genuine light strips reach 0.97.
-    emissive: { threshold: 0.97, softness: 0.03, strength: 1.6 },
-  },
-};
+const MATERIAL_CONFIG = {};

@@ -9,36 +9,42 @@ import { DUR, EASE, STAGGER, scaled } from './motion.js';
  * into the same master timeline that drives the vehicle. That is the whole
  * point: the word behind the model, the copy beside it and the model itself all
  * move on one clock.
+ *
+ * `variant` alternates between two readings of the same choreography — 0 lifts
+ * the copy away and brings the next set up from below, 1 mirrors it — so two
+ * changes in a row never play the identical move.
  */
 
-export function buildContentExit(q, direction, reduced) {
+export function buildContentExit(q, direction, reduced, variant = 0) {
   const timeline = gsap.timeline();
   const duration = scaled(DUR.short, reduced);
+  /* Which way the copy leaves, and which way the word behind it drifts. */
+  const sign = variant === 0 ? 1 : -1;
 
   timeline
     .to(q('[data-anim="type"]'), {
-      scale: 1.07,
-      xPercent: -2.5 * direction,
+      scale: variant === 0 ? 1.07 : 0.94,
+      xPercent: -2.5 * direction * sign,
       opacity: 0,
       duration: scaled(DUR.base, reduced),
       ease: EASE.in,
     }, 0)
     .to(q('[data-anim="info"]'), {
-      y: -16,
+      y: -16 * sign,
       opacity: 0,
       duration,
       ease: EASE.in,
       stagger: reduced ? 0 : STAGGER * 0.6,
     }, 0)
     .to(q('[data-anim="rail"]'), {
-      y: -14,
+      y: -14 * sign,
       opacity: 0,
       duration,
       ease: EASE.in,
       stagger: reduced ? 0 : STAGGER * 0.6,
     }, 0.03)
     .to(q('[data-anim="counter"]'), {
-      yPercent: -100,
+      yPercent: -100 * sign,
       opacity: 0,
       duration: scaled(DUR.micro, reduced),
       ease: EASE.in,
@@ -47,13 +53,14 @@ export function buildContentExit(q, direction, reduced) {
   return timeline;
 }
 
-export function buildContentEnter(q, direction, reduced) {
+export function buildContentEnter(q, direction, reduced, variant = 0) {
   const timeline = gsap.timeline();
+  const sign = variant === 0 ? 1 : -1;
 
   timeline
     .fromTo(q('[data-anim="type"]'), {
-      scale: 0.93,
-      xPercent: 2.5 * direction,
+      scale: variant === 0 ? 0.93 : 1.06,
+      xPercent: 2.5 * direction * sign,
       opacity: 0,
     }, {
       scale: 1,
@@ -62,21 +69,21 @@ export function buildContentEnter(q, direction, reduced) {
       duration: scaled(DUR.hero, reduced),
       ease: EASE.outLong,
     }, 0)
-    .fromTo(q('[data-anim="info"]'), { y: 22, opacity: 0 }, {
+    .fromTo(q('[data-anim="info"]'), { y: 22 * sign, opacity: 0 }, {
       y: 0,
       opacity: 1,
       duration: scaled(DUR.base, reduced),
       ease: EASE.out,
       stagger: reduced ? 0 : STAGGER,
     }, 0.08)
-    .fromTo(q('[data-anim="rail"]'), { y: 20, opacity: 0 }, {
+    .fromTo(q('[data-anim="rail"]'), { y: 20 * sign, opacity: 0 }, {
       y: 0,
       opacity: 1,
       duration: scaled(DUR.base, reduced),
       ease: EASE.out,
       stagger: reduced ? 0 : STAGGER,
     }, 0.14)
-    .fromTo(q('[data-anim="counter"]'), { yPercent: 100, opacity: 0 }, {
+    .fromTo(q('[data-anim="counter"]'), { yPercent: 100 * sign, opacity: 0 }, {
       yPercent: 0,
       opacity: 1,
       duration: scaled(DUR.short, reduced),

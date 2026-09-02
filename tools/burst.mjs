@@ -8,7 +8,7 @@ import { createServer } from 'vite';
 import puppeteer from 'puppeteer-core';
 
 const OUT = process.env.SHOT_DIR || './shots';
-const from = process.argv[2] ?? 'pal';
+const from = process.argv[2] ?? 'kodo';
 const nth = Number(process.argv[3] ?? 3);
 const frames = Number(process.argv[4] ?? 14);
 const step = Number(process.argv[5] ?? 170);

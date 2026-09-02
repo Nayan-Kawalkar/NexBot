@@ -1,6 +1,12 @@
 /**
- * The studio mark: an eight-arm asterisk, the same symbol that appears
- * moulded into the seat backs of the vehicles themselves.
+ * The studio mark: a robot head reduced to its two constants across the range —
+ * the rounded crown and the pair of eyes set in it.
+ *
+ * Drawn rather than imported so it inherits `currentColor` and the surrounding
+ * type size, which is what lets the same glyph sit in the header, the loader and
+ * the menu signature without three separate assets. Stroke weight is set for the
+ * size it is actually used at; the antenna and side vents are the first things
+ * to disappear at favicon scale, which is why neither carries the recognition.
  */
 export default function BrandMark({ className = '', size = '1em' }) {
   return (
@@ -12,21 +18,22 @@ export default function BrandMark({ className = '', size = '1em' }) {
       aria-hidden="true"
       focusable="false"
     >
-      <g stroke="currentColor" strokeWidth="2.1" strokeLinecap="round">
-        {Array.from({ length: 8 }, (_, i) => {
-          const angle = (Math.PI / 4) * i;
-          const inner = 2.4;
-          const outer = 10.2;
-          return (
-            <line
-              key={i}
-              x1={12 + Math.cos(angle) * inner}
-              y1={12 + Math.sin(angle) * inner}
-              x2={12 + Math.cos(angle) * outer}
-              y2={12 + Math.sin(angle) * outer}
-            />
-          );
-        })}
+      <g
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M12 2.6v2.5" />
+        <rect x="4.1" y="5.1" width="15.8" height="13.4" rx="4.6" />
+        {/* Side vents: they give the silhouette its width at large sizes. */}
+        <path d="M2.2 10.6v3.2M21.8 10.6v3.2" />
+      </g>
+      <g fill="currentColor">
+        <circle cx="12" cy="2.2" r="1.3" />
+        <circle cx="9.2" cy="11.9" r="1.75" />
+        <circle cx="14.8" cy="11.9" r="1.75" />
       </g>
     </svg>
   );

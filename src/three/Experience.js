@@ -418,8 +418,14 @@ export default class Experience {
     this.#invalidateShadows();
   }
 
-  /** The outgoing half of a project change: drift back, shrink, dissolve. */
-  createExitTimeline(direction = 1) {
+  /**
+   * The outgoing half of a project change.
+   *
+   * Two choreographies, alternated by the caller so consecutive changes never
+   * repeat the same move: variant 0 drifts back into depth, variant 1 swings
+   * out sideways and lifts. Both dissolve on the same clock.
+   */
+  createExitTimeline(direction = 1, variant = 0) {
     const entry = this.activeEntry;
     const timeline = gsap.timeline();
     if (!entry) return timeline;
@@ -429,22 +435,38 @@ export default class Experience {
 
     this.#setFadeMode(entry, true);
 
+    const spin = variant === 0 ? 0.55 * direction : -0.85 * direction;
+
     timeline
       .to(entry.pivot.rotation, {
-        y: `+=${0.55 * direction}`,
+        y: `+=${spin}`,
         duration: DUR.base,
         ease: EASE.in,
       }, 0)
-      .to(entry.pivot.scale, { x: 0.82, y: 0.82, z: 0.82, duration: DUR.base, ease: EASE.in }, 0)
-      .to(entry.pivot.position, { z: -0.55, duration: DUR.base, ease: EASE.in }, 0)
       .to(this, { shadowStrength: 0, duration: DUR.short, ease: EASE.in }, 0)
       .to(opacityProxy(entry), { value: 0, duration: DUR.short, ease: EASE.in }, 0.06);
+
+    if (variant === 0) {
+      timeline
+        .to(entry.pivot.scale, { x: 0.82, y: 0.82, z: 0.82, duration: DUR.base, ease: EASE.in }, 0)
+        .to(entry.pivot.position, { z: -0.55, duration: DUR.base, ease: EASE.in }, 0);
+    } else {
+      const lift = this.activeVehicle.presentation.lift * entry.size.y;
+      timeline
+        .to(entry.pivot.scale, { x: 0.9, y: 0.9, z: 0.9, duration: DUR.base, ease: EASE.in }, 0)
+        .to(entry.pivot.position, {
+          x: 0.5 * entry.size.x * direction,
+          y: lift + 0.22 * entry.size.y,
+          duration: DUR.base,
+          ease: EASE.in,
+        }, 0);
+    }
 
     return timeline;
   }
 
-  /** The incoming half: arrive from depth, settle into the presentation angle. */
-  createEnterTimeline(direction = 1) {
+  /** The incoming half: arrive, and settle into the presentation angle. */
+  createEnterTimeline(direction = 1, variant = 0) {
     const entry = this.activeEntry;
     const timeline = gsap.timeline({
       onComplete: () => {
@@ -456,17 +478,27 @@ export default class Experience {
     if (!entry) return timeline;
 
     const yaw = this.activeVehicle.presentation.yaw;
+    const lift = this.activeVehicle.presentation.lift * entry.size.y;
     this.#setFadeMode(entry, true);
     setEntryOpacity(entry, 0);
 
-    entry.pivot.rotation.set(0, yaw - 0.62 * direction, 0);
-    entry.pivot.scale.setScalar(0.84);
-    entry.pivot.position.set(0, this.activeVehicle.presentation.lift * entry.size.y, 0.6);
+    // Mirrors the exit it is paired with: variant 0 arrives out of depth,
+    // variant 1 swings in from the opposite side and settles down onto the
+    // floor. The yaw always resolves to the same presentation angle.
+    if (variant === 0) {
+      entry.pivot.rotation.set(0, yaw - 0.62 * direction, 0);
+      entry.pivot.scale.setScalar(0.84);
+      entry.pivot.position.set(0, lift, 0.6);
+    } else {
+      entry.pivot.rotation.set(0, yaw + 0.9 * direction, 0);
+      entry.pivot.scale.setScalar(0.94);
+      entry.pivot.position.set(-0.5 * entry.size.x * direction, lift + 0.22 * entry.size.y, 0);
+    }
 
     timeline
       .to(entry.pivot.rotation, { y: yaw, duration: DUR.hero, ease: EASE.outLong }, 0)
       .to(entry.pivot.scale, { x: 1, y: 1, z: 1, duration: DUR.hero, ease: EASE.outLong }, 0)
-      .to(entry.pivot.position, { z: 0, duration: DUR.hero, ease: EASE.outLong }, 0)
+      .to(entry.pivot.position, { x: 0, y: lift, z: 0, duration: DUR.hero, ease: EASE.outLong }, 0)
       .to(opacityProxy(entry), { value: 1, duration: DUR.base, ease: EASE.outSoft }, 0)
       .to(this, { shadowStrength: 1, duration: DUR.long, ease: EASE.outSoft }, 0.1)
       // A brief lift in exposure so the light visibly finds the new vehicle.

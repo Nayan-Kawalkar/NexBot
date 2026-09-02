@@ -119,14 +119,14 @@ export default function MenuOverlay({ open, activeIndex, onSelect, onClose, redu
             ))}
           </dl>
 
-          <a className="menu__contact" href="mailto:studio@phenomenon.design" data-menu-meta>
-            studio@phenomenon.design
+          <a className="menu__contact" href="mailto:studio@nexbot.design" data-menu-meta>
+            studio@nexbot.design
           </a>
         </div>
 
         <p className="menu__sign" data-menu-meta>
           <BrandMark className="menu__sign-mark" />
-          <span>Autonomous &amp; sustainable mobility, since 2016</span>
+          <span>Robotics for the places people already live and work, since 2016</span>
         </p>
       </div>
     </div>

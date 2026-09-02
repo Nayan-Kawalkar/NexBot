@@ -1,9 +1,14 @@
 /**
- * The film card. The still is the project's own studio render, keyed off its
- * white sweep at build time so it belongs to this palette rather than sitting
- * on it. Pressing play hands the frame over to the vehicle itself.
+ * The film card. The still is the project's own cut-out, padded at build time
+ * onto the frame's own aspect so every project sits at the same scale over the
+ * card's sweep. Pressing play hands the frame over to the vehicle itself.
+ *
+ * Projects whose still has not been built yet simply omit the card rather than
+ * showing a broken frame.
  */
 export default function MediaPreview({ vehicle, onPlay, disabled }) {
+  if (!vehicle.media) return null;
+
   return (
     <figure className="media" data-anim="rail">
       <div className="media__frame">
@@ -11,9 +16,9 @@ export default function MediaPreview({ vehicle, onPlay, disabled }) {
           className="media__image"
           src={vehicle.media}
           srcSet={`${vehicle.media} 1x, ${vehicle.media2x} 2x`}
-          alt={`${vehicle.name} — studio render`}
+          alt={`${vehicle.name} — studio portrait`}
           width="720"
-          height="720"
+          height="447"
           decoding="async"
           draggable="false"
         />

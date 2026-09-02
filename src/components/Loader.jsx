@@ -9,7 +9,7 @@ export default function Loader({ progress, done }) {
     <div className={`loader${done ? ' is-done' : ''}`} aria-hidden={done} role="status">
       <div className="loader__inner">
         <BrandMark className="loader__mark" />
-        <span className="loader__word">Phenomenon</span>
+        <span className="loader__word">NexBot</span>
         <span className="loader__track" aria-hidden="true">
           <span className="loader__bar" style={{ transform: `scaleX(${progress})` }} />
         </span>

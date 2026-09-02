@@ -21,8 +21,44 @@ import SocialLinks from './components/SocialLinks.jsx';
 import Statement from './components/Statement.jsx';
 import YearMeta from './components/YearMeta.jsx';
 
-const WHEEL_THRESHOLD = 64;
-const WHEEL_COOLDOWN = 1100;
+/* --- wheel tuning ---------------------------------------------------------
+   A wheel is not one input. A notched mouse sends a handful of large deltas, a
+   trackpad sends a continuous stream of small ones and then keeps sending them
+   as momentum long after the fingers have lifted, and Firefox reports lines
+   rather than pixels. All three have to arrive at the same gesture. */
+
+/** Travel, in pixels, that counts as a deliberate flick. */
+const WHEEL_THRESHOLD = 62;
+/** `deltaMode` conversions: 1 is lines, 2 is pages. */
+const WHEEL_LINE = 16;
+const WHEEL_PAGE = 400;
+/** A gap this long ends a gesture: part-built travel is dropped and the next
+    flick is armed again. Anything shorter is the same gesture still arriving —
+    which is what stops trackpad momentum from firing a second change. */
+const WHEEL_GAP = 220;
+/** Floor between two changes, once momentum has actually stopped. */
+const WHEEL_COOLDOWN = 260;
+
+/** Normalises a wheel event to pixels, whatever the device reports in. */
+const wheelPixels = (event) => {
+  if (event.deltaMode === 1) return event.deltaY * WHEEL_LINE;
+  if (event.deltaMode === 2) return event.deltaY * WHEEL_PAGE;
+  return event.deltaY;
+};
+
+/**
+ * Paints the project's grade onto the root.
+ *
+ * The transition lives in CSS (`--dur-atm`), so setting the values is enough —
+ * the room cross-fades on the same clock as the model swap.
+ */
+const applyAtmosphere = ({ glow, stops, deep }) => {
+  const root = document.documentElement.style;
+  root.setProperty('--atm-glow', `rgba(${glow.join(', ')}, 0.4)`);
+  root.setProperty('--atm-glow-0', `rgba(${glow.join(', ')}, 0)`);
+  stops.forEach((stop, index) => root.setProperty(`--atm-${index + 1}`, stop));
+  root.setProperty('--atm-deep', deep);
+};
 
 const indexFromHash = () => {
   const id = window.location.hash.replace('#/', '').trim();
@@ -38,6 +74,12 @@ export default function App() {
   const experienceRef = useRef(null);
   const transitionRef = useRef(false);
   const activeRef = useRef(0);
+  /** Flips 0/1 on every project change so the two swap choreographies alternate. */
+  const variantRef = useRef(0);
+  /* A flick made during a transition is remembered rather than dropped: the
+     interface is busy for a second or so, and swallowing input in that window
+     is what reads as lag. It is played the moment the current change lands. */
+  const pendingRef = useRef(0);
 
   const initialIndex = useMemo(indexFromHash, []);
 
@@ -63,6 +105,7 @@ export default function App() {
     if (!canvas) return undefined;
 
     const first = VEHICLES[initialIndex];
+    applyAtmosphere(first.atmosphere);
     const progressTarget = { value: 0 };
     // A GLB served without a content-length reports nothing useful, so the bar
     // creeps on its own and the real signal only ever pulls it forward.
@@ -164,6 +207,10 @@ export default function App() {
 
       const previous = activeRef.current;
       const direction = target > previous ? 1 : -1;
+      // Alternate the choreography on every change, so scrolling through the
+      // work never plays the same entrance twice in a row.
+      const variant = variantRef.current;
+      variantRef.current = variant === 0 ? 1 : 0;
       transitionRef.current = true;
       setLocked(true);
       setActiveIndex(target);
@@ -180,11 +227,14 @@ export default function App() {
         onComplete: () => {
           transitionRef.current = false;
           setLocked(false);
+          const queued = pendingRef.current;
+          pendingRef.current = 0;
+          if (queued) goTo(activeRef.current + queued);
         },
       });
 
-      const exit3D = experience.createExitTimeline(direction);
-      const exitContent = buildContentExit(q, direction, reducedMotion);
+      const exit3D = experience.createExitTimeline(direction, variant);
+      const exitContent = buildContentExit(q, direction, reducedMotion, variant);
       master.add(exit3D, 0).add(exitContent, 0);
 
       // Hand over slightly before the exit fully lands: by then the outgoing
@@ -201,12 +251,13 @@ export default function App() {
         // flushSync so the copy is already updated when the entrance tween reads
         // the DOM — otherwise React would batch the swap into the next frame and
         // the first frame of the entrance would animate stale text.
+        applyAtmosphere(vehicle.atmosphere);
         flushSync(() => setDisplayIndex(target));
         setReadyIds((current) => new Set(current).add(vehicle.id));
         experience.commit(vehicle, entry);
 
-        master.add(experience.createEnterTimeline(direction), swapAt);
-        master.add(buildContentEnter(q, direction, reducedMotion), swapAt + 0.06);
+        master.add(experience.createEnterTimeline(direction, variant), swapAt);
+        master.add(buildContentEnter(q, direction, reducedMotion, variant), swapAt + 0.06);
         master.resume();
 
         window.history.replaceState(null, '', `#/${vehicle.id}`);
@@ -235,29 +286,44 @@ export default function App() {
 
     let accumulated = 0;
     let cooldownUntil = 0;
+    let lastEvent = 0;
+    /* False while a gesture is still arriving — including its momentum tail. */
+    let armed = true;
+
+    const step = (direction) => {
+      if (transitionRef.current) pendingRef.current = direction;
+      else goTo(activeRef.current + direction);
+    };
 
     const onWheel = (event) => {
-      if (transitionRef.current) return;
       // Inside the mobile sheet a wheel gesture means "read on", not "next".
       if (event.target instanceof Node && rootRef.current?.querySelector('.sheet')?.contains(event.target)) {
         return;
       }
-      const now = performance.now();
-      if (now < cooldownUntil) return;
 
-      accumulated += event.deltaY;
+      const now = performance.now();
+      if (now - lastEvent > WHEEL_GAP) {
+        accumulated = 0;
+        armed = true;
+      }
+      lastEvent = now;
+
+      if (!armed || now < cooldownUntil) return;
+
+      accumulated += wheelPixels(event);
       if (Math.abs(accumulated) < WHEEL_THRESHOLD) return;
 
-      goTo(activeRef.current + Math.sign(accumulated));
+      const direction = Math.sign(accumulated);
       accumulated = 0;
+      armed = false;
       cooldownUntil = now + WHEEL_COOLDOWN;
+      step(direction);
     };
 
     const onKey = (event) => {
-      if (transitionRef.current) return;
       if (event.target instanceof HTMLElement && event.target.closest('.stage-canvas')) return;
-      if (event.key === 'ArrowRight' || event.key === 'PageDown') goTo(activeRef.current + 1);
-      else if (event.key === 'ArrowLeft' || event.key === 'PageUp') goTo(activeRef.current - 1);
+      if (event.key === 'ArrowRight' || event.key === 'PageDown') step(1);
+      else if (event.key === 'ArrowLeft' || event.key === 'PageUp') step(-1);
     };
 
     window.addEventListener('wheel', onWheel, { passive: true });

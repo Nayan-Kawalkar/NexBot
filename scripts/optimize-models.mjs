@@ -1,10 +1,11 @@
 /**
  * Model optimisation pipeline.
  *
- * Source assets are Tripo exports: single-mesh, single-material, 8K texture
- * atlases and (for the car) a ~1.9M triangle mesh. They render beautifully but
- * are far too heavy for the web, so this pass trims them down without touching
- * the authored look:
+ * Source assets are generator exports: ~2M triangles apiece and 4K atlases.
+ * They render beautifully and are far too heavy for the web — four of them at
+ * that weight is what makes a project change hitch, since a transition has two
+ * models live at once and draws each of them for the shadow map, the contact
+ * shadow and the beauty pass. This trims them without touching the look:
  *
  *   - resize texture atlases (they are low-frequency upscales, so 2K keeps
  *     every visible detail) and re-encode as WebP
@@ -33,27 +34,18 @@ const TEXTURE_LIMITS = {
   emissiveTexture: 1024,
 };
 
-// 1.92M triangles is far past a web budget. Rendered side by side against the
-// untouched geometry, ~250k is indistinguishable — the creasing on the canopy
-// turned out to be in the bake, not in the decimation.
-const HALO_RATIO = Number(process.env.HALO_RATIO ?? 0.13);
+// ~2M triangles is far past a web budget, and none of these models earn it:
+// they are smooth, hard-surface shells whose silhouette survives decimation
+// intact. ~220k is where the wheel rims and finger joints stop changing.
+const RATIO = Number(process.env.SIMPLIFY_RATIO ?? 0.11);
 
-const TARGETS = [
-  // The two scooter exports are not in the order their filenames suggest:
-  // "(1)" is the standing four-wheel platform, the other is the seated trike.
-  { src: 'futuristic scooter 3d model (1).glb', out: 'pal.glb',  simplifyRatio: null },
-  { src: 'futuristic scooter 3d model.glb',     out: 'sola.glb', simplifyRatio: null },
-  {
-    src: 'futuristic car 3d model.glb',
-    out: 'halo.glb',
-    simplifyRatio: HALO_RATIO,
-    // This bake packs its UV islands tightly and has generator creasing painted
-    // into the albedo; at 2048 the mip chain smears island edges into each
-    // other and the creasing reads as crumpled foil. 4K is the point where the
-    // bodywork settles. The other two are clean at 2048 and stay there.
-    textureLimits: { baseColorTexture: 4096 },
-  },
-];
+const SRC = path.join(ROOT, 'source/models');
+
+const TARGETS = ['kodo', 'vero', 'nia', 'lumi'].map((id) => ({
+  src: path.join('source/models', `${id}.glb`),
+  out: `${id}.glb`,
+  simplifyRatio: RATIO,
+}));
 
 const mb = (n) => (n / 1048576).toFixed(2) + ' MB';
 

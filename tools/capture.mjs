@@ -10,7 +10,12 @@ import path from 'node:path';
 import { createServer } from 'vite';
 import puppeteer from 'puppeteer-core';
 
-const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+/* Set CHROME to point the harness at whatever browser this machine has. */
+const CHROME =
+  process.env.CHROME ??
+  (process.platform === 'win32'
+    ? 'C:/Program Files/Google/Chrome/Application/chrome.exe'
+    : '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome');
 const OUT = process.env.SHOT_DIR || './shots';
 const shots = JSON.parse(await fs.readFile(process.argv[2] ?? 'tools/shots.json', 'utf8'));
 
@@ -32,6 +37,12 @@ const browser = await puppeteer.launch({
     '--ignore-gpu-blocklist',
     '--hide-scrollbars',
     '--force-device-scale-factor=1',
+    /* Headless Chrome treats the page as hidden and throttles rAF down to a
+       few frames a second, which stalls the boot sequence mid-intro and makes
+       every shot look like a bug in the app. */
+    '--disable-background-timer-throttling',
+    '--disable-backgrounding-occluded-windows',
+    '--disable-renderer-backgrounding',
   ],
 });
 

@@ -14,14 +14,29 @@ await server.listen();
 const base = server.resolvedUrls.local[0].replace(/\/$/, '');
 
 const browser = await puppeteer.launch({
-  executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+  executablePath:
+    process.env.CHROME ??
+    (process.platform === 'win32'
+      ? 'C:/Program Files/Google/Chrome/Application/chrome.exe'
+      : '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'),
   headless: 'new',
-  args: ['--no-sandbox', '--enable-unsafe-swiftshader', '--use-gl=angle', '--use-angle=swiftshader', '--hide-scrollbars'],
+  args: [
+    '--no-sandbox',
+    '--enable-unsafe-swiftshader',
+    '--use-gl=angle',
+    '--use-angle=swiftshader',
+    '--hide-scrollbars',
+    // Without these, headless throttles rAF to a few frames a second and the
+    // boot sequence never finishes.
+    '--disable-background-timer-throttling',
+    '--disable-backgrounding-occluded-windows',
+    '--disable-renderer-backgrounding',
+  ],
 });
 
 const page = await browser.newPage();
 await page.setViewport({ width: 1440, height: 900 });
-await page.goto(`${base}/#/pal`, { waitUntil: 'networkidle2', timeout: 60000 });
+await page.goto(`${base}/#/kodo`, { waitUntil: 'networkidle2', timeout: 60000 });
 await new Promise((r) => setTimeout(r, 11000));
 
 /** Accumulates a whole frame rather than just the last pass of it. */

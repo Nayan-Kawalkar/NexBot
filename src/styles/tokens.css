@@ -7,14 +7,48 @@
    type size or a page inset — it all comes from here.
    --------------------------------------------------------------------------- */
 
+@property --atm-glow { syntax: '<color>'; inherits: true; initial-value: rgba(133, 148, 163, 0.4); }
+@property --atm-glow-0 { syntax: '<color>'; inherits: true; initial-value: rgba(133, 148, 163, 0); }
+@property --atm-1 { syntax: '<color>'; inherits: true; initial-value: #3c454e; }
+@property --atm-2 { syntax: '<color>'; inherits: true; initial-value: #414a53; }
+@property --atm-3 { syntax: '<color>'; inherits: true; initial-value: #3a424b; }
+@property --atm-4 { syntax: '<color>'; inherits: true; initial-value: #313841; }
+@property --atm-deep { syntax: '<color>'; inherits: true; initial-value: #2f363e; }
+
 :root {
   /* --- Colour ------------------------------------------------------------- */
   /* A lit studio, not a flat black page: a cool charcoal base, a soft pool of
      light behind the hero, and darkened edges holding the frame together. */
   --bg-base: #3d464f;
-  --bg-deep: #2f363e;
+  --bg-deep: var(--atm-deep);
   --bg-glow: #8594a3;
-  --bg-floor: #313841;
+  --bg-floor: var(--atm-4);
+
+  /* --- Atmosphere, per project -------------------------------------------- */
+  /* The studio is graded to whatever is standing in it. The gradient geometry
+     never moves — only these colours do, set on the root as the project
+     changes and cross-faded by the transition below. Values are pulled from
+     each model's own dominant albedo, held at the same lightness as the
+     original slate so nothing else in the palette has to be re-tuned.
+
+     Registered with @property so they interpolate as colours rather than
+     snapping; browsers without support simply cut between projects. */
+  --atm-glow: rgba(133, 148, 163, 0.4);
+  --atm-glow-0: rgba(133, 148, 163, 0);
+  --atm-1: #3c454e;
+  --atm-2: #414a53;
+  --atm-3: #3a424b;
+  --atm-4: #313841;
+  --atm-deep: #2f363e;
+
+  transition:
+    --atm-glow var(--dur-atm) var(--ease-out),
+    --atm-glow-0 var(--dur-atm) var(--ease-out),
+    --atm-1 var(--dur-atm) var(--ease-out),
+    --atm-2 var(--dur-atm) var(--ease-out),
+    --atm-3 var(--dur-atm) var(--ease-out),
+    --atm-4 var(--dur-atm) var(--ease-out),
+    --atm-deep var(--dur-atm) var(--ease-out);
 
   --text: #ffffff;
   /* Contrast against the studio backdrop: muted clears 4.5:1, dim clears 3.7:1.
@@ -79,6 +113,8 @@
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   --dur-fast: 0.28s;
   --dur-base: 0.5s;
+  /* Matches the model swap, so the room and the vehicle change together. */
+  --dur-atm: 1.05s;
 
   /* --- Layers ------------------------------------------------------------- */
   --z-type: 1;

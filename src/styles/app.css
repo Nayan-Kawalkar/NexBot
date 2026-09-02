@@ -1,5 +1,5 @@
 /* ===========================================================================
-   Phenomenon — projects
+   NexBot — projects
    ---------------------------------------------------------------------------
    Layer order matters more here than anywhere else:
 
@@ -75,15 +75,17 @@ p, h1, h2, figure { margin: 0; }
 /* --- atmosphere ----------------------------------------------------------- */
 
 /* Not a flat panel: a pool of light behind the hero, edges pulled down, and a
-   trace of grain so the wide dark gradients do not band on 8-bit displays. */
+   trace of grain so the wide dark gradients do not band on 8-bit displays.
+   The colours come from the project's own palette (`--atm-*`, set on the root
+   as projects change); only they move, never the gradient geometry. */
 .atmosphere {
   position: fixed;
   inset: 0;
   z-index: 0;
   background:
-    radial-gradient(72% 56% at 50% 42%, rgba(133, 148, 163, 0.4), rgba(133, 148, 163, 0) 72%),
+    radial-gradient(72% 56% at 50% 42%, var(--atm-glow), var(--atm-glow-0) 72%),
     radial-gradient(130% 60% at 50% 112%, rgba(16, 20, 26, 0.42), rgba(16, 20, 26, 0) 62%),
-    linear-gradient(178deg, #3c454e 0%, #414a53 42%, #3a424b 74%, #313841 100%);
+    linear-gradient(178deg, var(--atm-1) 0%, var(--atm-2) 42%, var(--atm-3) 74%, var(--atm-4) 100%);
 }
 
 .atmosphere::before,

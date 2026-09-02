@@ -1,35 +1,50 @@
 /**
- * The three projects.
+ * The four projects.
  *
- * Everything the interface shows for a vehicle — copy, framing, the word that
+ * Everything the interface shows for a robot — copy, framing, the word that
  * sits behind it — lives here, so switching projects is a single index change
- * and no component ever needs to know which vehicle it is drawing.
+ * and no component ever needs to know which one it is drawing.
  *
  * `presentation` describes how the model should be staged rather than how it
  * was authored: the loader measures each GLB and normalises scale, centre and
  * ground contact, then applies these per-vehicle refinements on top.
+ *
+ * `atmosphere` grades the room to the robot standing in it. The gradient
+ * itself never changes shape — these colours simply replace the `--atm-*`
+ * tokens it is drawn from, and each set is derived from that model's own
+ * dominant albedo held at the lightness of the original slate, so contrast
+ * against the copy is unaffected.
  */
 export const VEHICLES = [
   {
-    id: 'pal',
+    id: 'kodo',
     index: 0,
-    name: 'Pal',
-    year: '2021',
-    title: 'A smarter last mile',
-    statement: 'We believe the future is autonomous and sustainable',
+    name: 'Kodo',
+    year: '2022',
+    title: 'A body built for stairs',
+    statement:
+      'We believe a machine should meet the world where it is',
     description:
-      'Pal is a near-future prototype for an intelligent, modular personal transport system that embraces AI and machine learning to offer flexible and convenient “last mile” travel for Chinese electric vehicle company NIO.',
+      'Kodo is a four-legged carrier that stops arguing about wheels versus legs. Each limb ends in a driven wheel, so it rolls where the floor is flat and walks where it is not — a warehouse aisle and a flight of stairs on the same errand.',
     secondary:
-      'Various accessories — bag, basket, shopping cart — can be affixed to the front of Pal to cater to the user’s diverse and changing needs.',
-    model: '/models/pal.glb',
-    media: '/media/pal.webp',
-    media2x: '/media/pal@2x.webp',
-    mediaLabel: 'Play the Pal design film',
+      'Its back is a flat deck rather than a shell: crates, tools, a stretcher or a survey rig bolt straight on, and the gait re-balances itself around whatever it is carrying.',
+    model: '/models/kodo.glb',
+    media: '/media/kodo.webp',
+    media2x: '/media/kodo@2x.webp',
+    mediaLabel: 'Play the Kodo field film',
+    /* Sampled dominant albedo #292c30 — a cool near-neutral, which is the
+       grade the studio was authored in, so Kodo keeps the base palette. */
+    atmosphere: {
+      glow: [133, 148, 163],
+      stops: ['#3c454e', '#414a53', '#3a424b', '#313841'],
+      deep: '#2f363e',
+    },
     presentation: {
       /* Share of the viewport height the vehicle should occupy. */
       fill: 0.8,
-      /* Yaw that turns the authored front towards a front three-quarter view. */
-      yaw: -0.62,
+      /* Yaw that turns the authored front towards a front three-quarter view,
+         set a little past three-quarters so the nose reads to the left. */
+      yaw: -0.78,
       /* Fine vertical nudge, in multiples of the vehicle height. */
       lift: 0,
       /* Relative width of the word set behind the model. */
@@ -37,49 +52,93 @@ export const VEHICLES = [
     },
   },
   {
-    id: 'sola',
+    id: 'vero',
     index: 1,
-    name: 'Sola',
+    name: 'Vero',
     year: '2023',
-    title: 'The city, seated',
-    statement: 'We believe mobility should adapt to the rider',
+    title: 'Hands, where they are needed',
+    statement:
+      'We believe autonomy should be able to lend a hand',
     description:
-      'Sola carries the platform to riders who would rather sit than stand. A single-seat, three-wheel chassis leans into corners under its own control, keeping the seat level while the frame does the work of balance.',
+      'Vero is a general-purpose humanoid, sized to the spaces people already work in. It reaches the same shelves, passes through the same doorways and uses the same tools, so a site never has to be rebuilt around it.',
     secondary:
-      'Headrest, armrests and deck form one soft-goods system — swapped, washed or replaced without ever touching the structure beneath.',
-    model: '/models/sola.glb',
-    media: '/media/sola.webp',
-    media2x: '/media/sola@2x.webp',
-    mediaLabel: 'Play the Sola design film',
+      'The visor is the whole interface: perception, intent and attention are shown on one surface, so anyone nearby can read what it is about to do without a screen or an app.',
+    model: '/models/vero.glb',
+    media: '/media/vero.webp',
+    media2x: '/media/vero@2x.webp',
+    mediaLabel: 'Play the Vero field film',
+    /* Sampled dominant albedo #7776ef — the violet body. */
+    atmosphere: {
+      glow: [148, 146, 190],
+      stops: ['#43405a', '#484563', '#413e57', '#37344a'],
+      deep: '#332f45',
+    },
     presentation: {
       fill: 0.82,
-      yaw: -0.62,
+      yaw: -1.12,
       lift: 0,
       typeScale: 0.78,
     },
   },
   {
-    id: 'halo',
+    id: 'nia',
     index: 2,
-    name: 'Halo',
+    name: 'Nia',
     year: '2024',
-    title: 'A roof, not a car',
-    statement: 'We believe shelter should not cost a lane',
+    title: 'A helper that stays home',
+    statement:
+      'We believe care should feel like company',
     description:
-      'Halo closes the distance between a scooter and a car. One moulded canopy carries the glazing, the lighting and the roll structure, giving a single rider weather protection inside half the width of a city parking bay.',
+      'Nia is the domestic member of the family: a stable wheeled base, a torso that raises and lowers, and two arms deliberately geared to be gentle. It works at counter height and at floor height without ever needing to be lifted.',
     secondary:
-      'Autonomy is optional rather than assumed — the yoke folds away into the dash, and the cabin hands itself over for the length of the journey.',
-    model: '/models/halo.glb',
-    media: '/media/halo.webp',
-    media2x: '/media/halo@2x.webp',
-    mediaLabel: 'Play the Halo design film',
+      'Nothing about it is hidden. The base carries its own weight low and slow, and every joint stops the moment it meets resistance it did not expect.',
+    model: '/models/nia.glb',
+    media: '/media/nia.webp',
+    media2x: '/media/nia@2x.webp',
+    mediaLabel: 'Play the Nia home film',
+    /* Sampled dominant albedo #565049 — warm taupe bodywork. */
+    atmosphere: {
+      glow: [168, 157, 140],
+      stops: ['#4b463d', '#514c42', '#49443c', '#3f3a33'],
+      deep: '#3b372f',
+    },
     presentation: {
-      // The widest of the three: a touch smaller so its rear wheel keeps clear
+      // The widest of the four: a touch smaller so its rear wheel keeps clear
       // of the right-hand column.
       fill: 0.7,
-      yaw: -0.62,
+      yaw: -1.12,
       lift: 0,
       typeScale: 0.78,
+    },
+  },
+  {
+    id: 'lumi',
+    index: 3,
+    name: 'Lumi',
+    year: '2025',
+    title: 'Small, and entirely present',
+    statement:
+      'We believe the smallest robot should feel the most considered',
+    description:
+      'Lumi is the one you talk to. Knee-high and light enough to pick up, it is built for attention rather than payload — reading a room, holding a conversation, and knowing when to leave one alone.',
+    secondary:
+      'The ears are instruments, not decoration: they carry the microphone array and, in moving, tell you exactly where its attention has gone.',
+    model: '/models/lumi.glb',
+    media: '/media/lumi.webp',
+    media2x: '/media/lumi@2x.webp',
+    mediaLabel: 'Play the Lumi companion film',
+    /* Sampled dominant albedo #b19694 — a soft rose, with the violet trim
+       pulling the shadows slightly cool. */
+    atmosphere: {
+      glow: [176, 152, 155],
+      stops: ['#4e4245', '#544749', '#4b4042', '#413739'],
+      deep: '#3d3336',
+    },
+    presentation: {
+      fill: 0.8,
+      yaw: -1.12,
+      lift: 0,
+      typeScale: 0.9,
     },
   },
 ];

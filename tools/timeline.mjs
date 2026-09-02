@@ -8,7 +8,7 @@ import { createServer } from 'vite';
 import puppeteer from 'puppeteer-core';
 
 const OUT = process.env.SHOT_DIR || './shots';
-const target = process.argv[2] ?? 'pal';
+const target = process.argv[2] ?? 'kodo';
 const offsets = (process.argv[3] ?? '400,900,1500,2200,3200,5000,9000').split(',').map(Number);
 
 await fs.mkdir(OUT, { recursive: true });

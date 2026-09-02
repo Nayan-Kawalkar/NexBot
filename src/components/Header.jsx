@@ -12,7 +12,7 @@ export default function Header({ activeIndex, menuOpen, onMenuToggle, onHome }) 
       <a
         className="header__brand"
         href="#/"
-        aria-label="Phenomenon — first project"
+        aria-label="NexBot — first project"
         data-anim="chrome"
         onClick={(event) => {
           event.preventDefault();
@@ -20,7 +20,7 @@ export default function Header({ activeIndex, menuOpen, onMenuToggle, onHome }) 
         }}
       >
         <BrandMark className="header__brand-mark" />
-        <span className="header__brand-name">Phenomenon</span>
+        <span className="header__brand-name">NexBot</span>
       </a>
 
       <p className="header__section" aria-hidden="true" data-anim="chrome" data-menu-hide>

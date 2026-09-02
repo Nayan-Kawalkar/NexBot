@@ -1,56 +1,56 @@
 [
   {
-    "name": "01-pal-desktop",
-    "path": "/#/pal",
+    "name": "01-kodo-desktop",
+    "path": "/#/kodo",
     "width": 1673,
     "height": 947,
     "wait": 10000
   },
   {
-    "name": "02-sola-desktop",
-    "path": "/#/sola",
+    "name": "02-vero-desktop",
+    "path": "/#/vero",
     "width": 1673,
     "height": 947,
     "wait": 10000
   },
   {
-    "name": "03-halo-desktop",
-    "path": "/#/halo",
+    "name": "03-nia-desktop",
+    "path": "/#/nia",
     "width": 1673,
     "height": 947,
     "wait": 13000
   },
   {
     "name": "10-desktop-xl",
-    "path": "/#/pal",
+    "path": "/#/kodo",
     "width": 2560,
     "height": 1440,
     "wait": 12000
   },
   {
     "name": "11-laptop",
-    "path": "/#/pal",
+    "path": "/#/kodo",
     "width": 1440,
     "height": 900,
     "wait": 10000
   },
   {
     "name": "12-tablet",
-    "path": "/#/sola",
+    "path": "/#/vero",
     "width": 1024,
     "height": 768,
     "wait": 11000
   },
   {
     "name": "13-tablet-portrait",
-    "path": "/#/sola",
+    "path": "/#/vero",
     "width": 834,
     "height": 1112,
     "wait": 11000
   },
   {
     "name": "14-phone",
-    "path": "/#/pal",
+    "path": "/#/kodo",
     "width": 390,
     "height": 844,
     "wait": 12000,
@@ -58,7 +58,7 @@
   },
   {
     "name": "15-phone-small",
-    "path": "/#/halo",
+    "path": "/#/nia",
     "width": 360,
     "height": 740,
     "wait": 14000,
@@ -66,7 +66,7 @@
   },
   {
     "name": "16-phone-landscape",
-    "path": "/#/pal",
+    "path": "/#/kodo",
     "width": 844,
     "height": 390,
     "wait": 11000,
@@ -74,14 +74,14 @@
   },
   {
     "name": "17-small-landscape",
-    "path": "/#/pal",
+    "path": "/#/kodo",
     "width": 900,
     "height": 620,
     "wait": 11000
   },
   {
     "name": "20-menu",
-    "path": "/#/sola",
+    "path": "/#/vero",
     "width": 1440,
     "height": 900,
     "wait": 10000,
@@ -96,7 +96,7 @@
   },
   {
     "name": "21-cinematic",
-    "path": "/#/sola",
+    "path": "/#/vero",
     "width": 1440,
     "height": 900,
     "wait": 10000,
@@ -111,7 +111,7 @@
   },
   {
     "name": "22-dragged",
-    "path": "/#/pal",
+    "path": "/#/kodo",
     "width": 1440,
     "height": 900,
     "wait": 10000,
@@ -131,7 +131,7 @@
   },
   {
     "name": "23-transition-mid",
-    "path": "/#/pal",
+    "path": "/#/kodo",
     "width": 1440,
     "height": 900,
     "wait": 10000,
@@ -146,7 +146,7 @@
   },
   {
     "name": "24-rapid-clicks",
-    "path": "/#/pal",
+    "path": "/#/kodo",
     "width": 1440,
     "height": 900,
     "wait": 10000,
@@ -170,7 +170,7 @@
   },
   {
     "name": "25-reduced-motion",
-    "path": "/#/pal",
+    "path": "/#/kodo",
     "width": 1440,
     "height": 900,
     "wait": 11000,
@@ -178,7 +178,7 @@
   },
   {
     "name": "26-loader",
-    "path": "/#/halo",
+    "path": "/#/nia",
     "width": 1440,
     "height": 900,
     "wait": 2600,
