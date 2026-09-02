@@ -22,6 +22,17 @@ turned each one into a 3D model, and **Claude Opus 5** built the site around
 them — the render pipeline, the interface and the transitions — so anyone can
 turn the models over in a browser rather than looking at a picture of them.
 
+Three of the five, each recolouring the room from its own
+paint:
+
+| | |
+|---|---|
+| ![The Kodo, a white grand tourer, the room and its 1180S number in warm platinum](docs/hero-kodo.webp) | ![The Vero, a gold one-off, the room and its 1250G number in amber](docs/hero-vero.webp) |
+
+![The Nia, an open-top in metallic green, the room and its 940T number in the same green](docs/hero-nia.webp)
+
+![The vero, an open-top in metallic green, the room and its 940T number in the same green](docs/hero-vero.webp)
+
 That pipeline is worth stating plainly because it explains most of what follows.
 An image-to-3D export is not a hand-authored asset: it arrives as a single mesh
 with a single material, roughly two million triangles and 4K atlases, with
